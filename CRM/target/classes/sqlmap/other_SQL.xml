@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. --> 
+<mapper namespace="com.usinsa.crm.dao.OtherDAO">
+<select id="other_coupon_list" resultType="OtherVO">
+	select
+		*
+	from
+		coupon_tb
+</select>
+<select id="other_coupon_category" resultType="OtherVO">
+	select
+		distinct product_main_category
+	from
+		product_tb
+</select>
+<select id="other_select_coupon" resultType="OtherVO">
+	select
+		*
+	from
+		coupon_tb
+	where
+	coupon_id = #{coupon_id}
+</select>
+<select id="coupon_max" resultType="OtherVO">
+	select
+		max(to_number(coupon_id))+1 as coupon_id
+	from
+		coupon_tb
+</select>
+<select id="coupon_issued_id" resultType="String">
+	select
+		max(to_number(coupon_issued_id))+1 as coupon_issued_id
+	from
+		coupon_issued_tb
+</select>
+<insert id="coupon_insert">
+	insert into coupon_tb
+	values(#{coupon_id},#{coupon_name},#{product_main_category},sysdate,#{discount})
+</insert>
+<update id="coupon_update">
+	update 
+		coupon_tb
+	set 
+		coupon_name = #{coupon_name},
+		product_main_category = #{product_main_category},
+		discount = #{discount}
+	where coupon_id = #{coupon_id}
+</update>
+<select id="other_user" resultType="UserVO">
+	select
+		user_id,
+		user_name
+	from
+		user_tb
+	where 1=1
+	<if test="level_id != '' and level_id != null and level_id != 'all'">
+		and level_id = #{level_id}
+	</if>
+	<if test="user_job != '' and user_job != null and user_job != 'all'">
+		and user_job = #{user_job}
+	</if>
+	<if test="user_name != '' and user_name != null">
+		and user_name like '%'||#{user_name}||'%'
+	</if>
+</select>
+<select id="user_job" resultType="UserVO">
+	select
+		distinct user_job
+	from
+		user_tb
+</select>
+<select id="level" resultType="LevelVO">
+	select
+		level_id,
+		level_name
+	from
+		level_tb
+</select>
+
+<select id="user_email" parameterType="String" resultType="String">
+	select
+		email
+	from
+		user_tb
+	where user_id in
+	<foreach collection="user_id" item="item" index="index" separator="," open="(" close=")">
+		#{item}
+	</foreach>
+</select>
+<insert id="coupon_mail_insert">
+	insert into mail_tb(user_id,mail_category,content,reg_date, title)
+	values(#{user_id},#{mail_category},#{content},sysdate,#{title})
+</insert>
+	
+<insert id="coupon_issued_insert">
+	insert into coupon_issued_tb(coupon_id,user_id,reg_date, coupon_yn,coupon_issued_id)
+	values(#{coupon_id},#{user_id},sysdate, 'n',#{coupon_issued_id})
+</insert>
+
+<select id="coupon_name" resultType="String" parameterType="String">
+	select
+		coupon_name
+	from
+		coupon_tb
+	where
+		coupon_id in
+	<foreach collection="coupon_id" item="item" index="index" separator="," open="(" close=")">
+		#{item}
+	</foreach>
+</select>
+</mapper>

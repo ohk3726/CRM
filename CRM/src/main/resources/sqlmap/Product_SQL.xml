@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. -->
+<mapper namespace="com.usinsa.crm.dao.ProductDAO">
+
+	<select id="ProductList" resultType="PRODUCT_TB_VO">
+		SELECT
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		to_char(PRODUCT_CNT,'FM999,999,999,999') as
+		PRODUCT_CNT,
+		to_char(PRODUCT_WEARING_PRICE,'FM999,999,999,999') as
+		PRODUCT_WEARING_PRICE,
+		to_char(PRODUCT_PRICE,'FM999,999,999,999') as
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		TO_CHAR(REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM PRODUCT_TB
+	</select>
+
+	<select id="Product_Search_Id" resultType="PRODUCT_TB_VO">
+		SELECT
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		to_char(PRODUCT_CNT,'FM999,999,999,999') as
+		PRODUCT_CNT,
+		to_char(PRODUCT_WEARING_PRICE,'FM999,999,999,999') as
+		PRODUCT_WEARING_PRICE,
+		to_char(PRODUCT_PRICE,'FM999,999,999,999') as
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		TO_CHAR(REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM PRODUCT_TB
+		WHERE PRODUCT_ID =
+		#{PRODUCT_ID}
+
+	</select>
+
+	<select id="Product_Search_Size" resultType="PRODUCT_TB_VO">
+		SELECT
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		to_char(PRODUCT_CNT,'FM999,999,999,999') as
+		PRODUCT_CNT,
+		to_char(PRODUCT_WEARING_PRICE,'FM999,999,999,999') as
+		PRODUCT_WEARING_PRICE,
+		to_char(PRODUCT_PRICE,'FM999,999,999,999') as
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		TO_CHAR(REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM PRODUCT_TB
+		WHERE PRODUCT_SIZE =
+		#{PRODUCT_SIZE}
+
+	</select>
+
+
+	<select id="Product_Search_Name" resultType="PRODUCT_TB_VO">
+		SELECT
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		to_char(PRODUCT_CNT,'FM999,999,999,999') as
+		PRODUCT_CNT,
+		to_char(PRODUCT_WEARING_PRICE,'FM999,999,999,999') as
+		PRODUCT_WEARING_PRICE,
+		to_char(PRODUCT_PRICE,'FM999,999,999,999') as
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		TO_CHAR(REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM PRODUCT_TB
+		where PRODUCT_NAME LIKE
+		'%' || #{PRODUCT_NAME} || '%'
+
+	</select>
+
+
+
+
+
+
+
+	<select id="ProductInfo" resultType="PRODUCT_TB_VO">
+		SELECT
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		to_char(PRODUCT_CNT,'FM999,999,999,999') as
+		PRODUCT_CNT,
+		to_char(PRODUCT_WEARING_PRICE,'FM999,999,999,999') as
+		PRODUCT_WEARING_PRICE,
+		to_char(PRODUCT_PRICE,'FM999,999,999,999') as
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		TO_CHAR(REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM PRODUCT_TB
+		WHERE PRODUCT_ID =
+		#{PRODUCT_ID}
+	</select>
+
+
+	<select id="Product_SameId" resultType="int">
+		SELECT COUNT(*) FROM
+		PRODUCT_TB WHERE PRODUCT_ID = #{PRODUCT_ID}
+	</select>
+
+	<insert id="Product_Insert">
+		INSERT into PRODUCT_TB(
+		PRODUCT_ID,
+		PRODUCT_NAME,
+		PRODUCT_SIZE,
+		PRODUCT_CNT,
+		PRODUCT_WEARING_PRICE,
+		PRODUCT_PRICE,
+		PRODUCT_MAIN_CATEGORY,
+		PRODUCT_SUB_CATEGORY,
+		PRODUCT_SSUB_CATEGORY,
+		REG_DATE)
+
+		VALUES(
+		#{PRODUCT_ID},
+		#{PRODUCT_NAME},
+		#{PRODUCT_SIZE},
+		#{PRODUCT_CNT},
+		#{PRODUCT_WEARING_PRICE},
+		#{PRODUCT_PRICE},
+		#{PRODUCT_MAIN_CATEGORY},
+		#{PRODUCT_SUB_CATEGORY},
+		#{PRODUCT_SSUB_CATEGORY},
+		sysdate)
+	</insert>
+
+
+	<update id="Product_Update">
+		UPDATE PRODUCT_TB SET
+		PRODUCT_NAME = #{PRODUCT_NAME},
+		PRODUCT_SIZE = #{PRODUCT_SIZE},
+		PRODUCT_CNT=
+		#{PRODUCT_CNT},
+		PRODUCT_WEARING_PRICE = #{PRODUCT_WEARING_PRICE},
+		PRODUCT_PRICE=
+		#{PRODUCT_PRICE},
+		PRODUCT_MAIN_CATEGORY=
+		#{PRODUCT_MAIN_CATEGORY},
+		PRODUCT_SUB_CATEGORY=
+		#{PRODUCT_SUB_CATEGORY},
+		PRODUCT_SSUB_CATEGORY=
+		#{PRODUCT_SSUB_CATEGORY},
+		REG_DATE = SYSDATE
+		WHERE PRODUCT_ID =
+		#{PRODUCT_ID}
+	</update>
+
+
+	<select id="Linked_Products" resultType="PRODUCT_TB_VO">
+
+		select
+			t900.product_id,
+			t900.product_name,
+			sum(t900.order_product_cnt) as order_price
+		from (select
+			t20.product_id,
+			t30.product_name,
+			t20.order_product_cnt
+			from
+			(select t100.order_id, t200.product_main_category, t100.reg_date,t100.user_id from order_tb t100, product_tb t200 where t100.product_id = t200.product_id and t100.product_id = #{PRODUCT_ID}) t10,
+			order_tb t20,
+			product_tb t30
+			where t10.user_id = t20.user_id
+			and t20.product_id = t30.product_id
+			and t20.order_id != t10.order_id
+			and t30.product_main_category != t10.product_main_category
+			and t10.reg_date = t20.reg_date
+			group by t20.product_id, t30.product_name, t20.order_product_cnt) t900
+		group by t900.product_id, t900.product_name
+
+		<!-- SELECT t10.order_id, t20.order_id, t10.user_id FROM (select * from(select 
+			order_id, reg_date, user_id from order_tb where user_id = '1' order by order_id 
+			asc)where rownum = 1) t10, order_tb t20 where t10.user_id = t20.user_id and 
+			t10.order_id <> t20.order_id and to_date(t10.reg_date,'YYYY-MM-dd') = to_date(t20.reg_date,'YYYY-MM-dd'); -->
+
+	</select>
+
+
+	<select id="product_sub_category" resultType="String">
+		SELECT PRODUCT_SUB_CATEGORY
+		FROM PRODUCT_TB
+		WHERE PRODUCT_ID = #{PRODUCT_ID}
+	</select>
+
+
+</mapper>

@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. -->
+<mapper namespace="com.usinsa.crm.dao.OrderDAO">
+
+	<select id="product_order" resultType="ORDER_TB_VO">
+		select USER_TB.USER_NAME,
+		ORDER_TB.ORDER_PRODUCT_CNT,
+		to_char((ORDER_TB.ORDER_PRODUCT_CNT*PRODUCT_TB.PRODUCT_PRICE),'FM999,999,999,999')
+		as ORDER_PRICE,
+
+		TO_CHAR(ORDER_TB.REG_DATE,'YYYY-MM-DD') as REG_DATE,
+		ORDER_TB.ORDER_CHECK
+		FROM
+		ORDER_TB,PRODUCT_TB,USER_TB
+		WHERE PRODUCT_TB.PRODUCT_ID =
+		ORDER_TB.PRODUCT_ID AND ORDER_TB.USER_ID =
+		USER_TB.USER_ID
+		AND
+		PRODUCT_TB.PRODUCT_ID = #{PRODUCT_ID}
+		ORDER BY ORDER_TB.REG_DATE DESC
+	</select>
+
+	<select id="option_date" resultType="ORDER_TB_VO">
+		select USER_TB.USER_NAME,
+		ORDER_TB.ORDER_PRODUCT_CNT,
+		to_char((ORDER_TB.ORDER_PRODUCT_CNT*PRODUCT_TB.PRODUCT_PRICE),'FM999,999,999,999')
+		as ORDER_PRICE,
+			TO_CHAR(ORDER_TB.REG_DATE,'YYYY-MM-DD') as REG_DATE,
+		ORDER_TB.ORDER_CHECK
+		FROM
+		ORDER_TB,PRODUCT_TB,USER_TB
+		WHERE PRODUCT_TB.PRODUCT_ID =
+		ORDER_TB.PRODUCT_ID AND ORDER_TB.USER_ID =
+		USER_TB.USER_ID
+		AND
+		PRODUCT_TB.PRODUCT_ID = #{PRODUCT_ID}
+		ORDER BY ORDER_TB.REG_DATE DESC
+	</select>
+
+	<select id="option_check" resultType="ORDER_TB_VO">
+		select USER_TB.USER_NAME,
+		ORDER_TB.ORDER_PRODUCT_CNT,
+		to_char((ORDER_TB.ORDER_PRODUCT_CNT*PRODUCT_TB.PRODUCT_PRICE),'FM999,999,999,999')
+		as ORDER_PRICE,
+			TO_CHAR(ORDER_TB.REG_DATE,'YYYY-MM-DD') as REG_DATE,
+		ORDER_TB.ORDER_CHECK
+		FROM
+		ORDER_TB,PRODUCT_TB,USER_TB
+		WHERE PRODUCT_TB.PRODUCT_ID =
+		ORDER_TB.PRODUCT_ID AND ORDER_TB.USER_ID =
+		USER_TB.USER_ID
+		AND
+		PRODUCT_TB.PRODUCT_ID = #{PRODUCT_ID}
+		ORDER BY ORDER_TB.ORDER_CHECK
+	</select>
+
+	<select id="product_order_customer" resultType="ORDER_TB_VO">
+		SELECT
+		UT.USER_NAME,OT.ORDER_PRODUCT_CNT, TO_CHAR( OT.REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM ORDER_TB OT,USER_TB
+		UT
+		WHERE OT.USER_ID = UT.USER_ID AND OT.PRODUCT_ID = #{PRODUCT_ID}
+	</select>
+
+	<select id="option_date_customer" resultType="ORDER_TB_VO">
+		SELECT
+		UT.USER_NAME,OT.ORDER_PRODUCT_CNT, 	TO_CHAR( OT.REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM ORDER_TB OT,USER_TB
+		UT
+		WHERE OT.USER_ID = UT.USER_ID AND OT.PRODUCT_ID = #{PRODUCT_ID}
+		ORDER BY OT.REG_DATE DESC
+	</select>
+
+	<select id="option_state_name" resultType="ORDER_TB_VO">
+		SELECT
+		UT.USER_NAME,OT.ORDER_PRODUCT_CNT, TO_CHAR( OT.REG_DATE,'YYYY-MM-DD') as REG_DATE
+		FROM ORDER_TB OT,USER_TB
+		UT
+		WHERE OT.USER_ID = UT.USER_ID AND OT.PRODUCT_ID = #{PRODUCT_ID}
+		ORDER BY UT.USER_NAME
+	</select>
+
+	<!-- 수량 제품명 매출 -->
+	<select id="product_category" resultType="ORDER_TB_VO">
+		SELECT PT.PRODUCT_NAME
+		, SUM(OB.ORDER_PRODUCT_CNT) AS ORDER_PRODUCT_CNT ,
+		to_char(SUM(PT.PRODUCT_PRICE),'FM999,999,999,999') as ORDER_PRICE
+		FROM
+		ORDER_TB OB, PRODUCT_TB PT
+		WHERE OB.PRODUCT_ID = PT.PRODUCT_ID
+		GROUP BY
+		PT.PRODUCT_NAME
+	</select>
+
+	<select id="option_product_name" resultType="ORDER_TB_VO">
+		SELECT PT.PRODUCT_NAME , SUM(OB.ORDER_PRODUCT_CNT) AS ORDER_PRODUCT_CNT ,
+		SUM(PT.PRODUCT_PRICE) as ORDER_PRICE
+		FROM ORDER_TB OB, PRODUCT_TB PT
+		WHERE OB.PRODUCT_ID = PT.PRODUCT_ID
+		GROUP BY PT.PRODUCT_NAME
+		ORDER BY
+		PT.PRODUCT_NAME DESC
+	</select>
+
+	<select id="option_product_cnt" resultType="ORDER_TB_VO">
+		SELECT PT.PRODUCT_NAME , SUM(OB.ORDER_PRODUCT_CNT) AS ORDER_PRODUCT_CNT ,
+		SUM(PT.PRODUCT_PRICE) as ORDER_PRICE
+		FROM ORDER_TB OB, PRODUCT_TB PT
+		WHERE OB.PRODUCT_ID = PT.PRODUCT_ID
+		GROUP BY PT.PRODUCT_NAME
+		ORDER BY
+		ORDER_PRODUCT_CNT DESC
+	</select>
+
+	<select id="option_product_price" resultType="ORDER_TB_VO">
+
+
+		SELECT
+		t10.PRODUCT_NAME,
+		ORDER_PRODUCT_CNT,
+		to_char(ORDER_PRICE,'FM999,999,999') as ORDER_PRICE
+		FROM(SELECT
+		PT.PRODUCT_NAME ,
+		SUM(OB.ORDER_PRODUCT_CNT) AS ORDER_PRODUCT_CNT ,
+		SUM(PT.PRODUCT_PRICE) as ORDER_PRICE
+		FROM
+		ORDER_TB OB,
+		PRODUCT_TB PT
+		WHERE OB.PRODUCT_ID = PT.PRODUCT_ID
+		GROUP BY PT.PRODUCT_NAME
+		ORDER BY ORDER_PRICE DESC) t10
+
+	</select>
+
+	<select id="selet_gold" resultType="ORDER_TB_VO">
+		select
+        t10.product_id,
+		t10.product_name,
+		to_char(ORDER_PRICE,'FM999,999,999') as ORDER_PRICE
+        FROM(
+         select
+		t30.product_id,
+		t30.product_name,
+		sum(t20.order_product_cnt *t30.product_price) as ORDER_PRICE
+		from
+		(select * from user_tb where
+		level_id = #{LEVEL_ID}) t10,
+		order_tb t20,
+		product_tb t30
+		where
+		t10.user_id = t20.user_id
+		and t20.product_id = t30.product_id
+		group by
+		t30.product_name, t30.product_id
+        order by ORDER_PRICE DESC) t10
+	</select>
+
+	<select id="selet_platinum" resultType="ORDER_TB_VO">
+	select
+        t10.product_id,
+		t10.product_name,
+		to_char(ORDER_PRICE,'FM999,999,999') as ORDER_PRICE
+        FROM(
+         select
+		t30.product_id,
+		t30.product_name,
+		sum(t20.order_product_cnt *t30.product_price) as ORDER_PRICE
+		from
+		(select * from user_tb where
+		level_id = #{LEVEL_ID}) t10,
+		order_tb t20,
+		product_tb t30
+		where
+		t10.user_id = t20.user_id
+		and t20.product_id = t30.product_id
+		group by
+		t30.product_name, t30.product_id
+        order by ORDER_PRICE DESC) t10
+	</select>
+
+	<select id="selet_dia" resultType="ORDER_TB_VO">
+		select
+        t10.product_id,
+		t10.product_name,
+		to_char(ORDER_PRICE,'FM999,999,999') as ORDER_PRICE
+        FROM(
+         select
+		t30.product_id,
+		t30.product_name,
+		sum(t20.order_product_cnt *t30.product_price) as ORDER_PRICE
+		from
+		(select * from user_tb where
+		level_id = #{LEVEL_ID}) t10,
+		order_tb t20,
+		product_tb t30
+		where
+		t10.user_id = t20.user_id
+		and t20.product_id = t30.product_id
+		group by
+		t30.product_name, t30.product_id
+        order by ORDER_PRICE DESC) t10
+	</select>
+
+
+</mapper>

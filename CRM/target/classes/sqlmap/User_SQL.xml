@@ -1,0 +1,464 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. --> 
+<mapper namespace="com.usinsa.crm.dao.UserDAO"> 
+<!-- id 속성은 DAO 의 메소드와 같아야 한다. 여기의 boardVO 는 mybatis-confg.xml 에 Alias 되어 있습니다. --> 
+	<select resultType="LEVEL_TB_VO" id="Level_List">SELECT LEVEL_ID,level_name FROM LEVEL_TB </select>
+	<select id="selectuser" resultType="UserVO">
+		SELECT 
+			user_id,
+			user_name,
+			user_phone,
+			to_char(user_ssn,'YYYY-MM-dd') as user_ssn,
+			user_job,
+			user_adress 
+		FROM user_tb
+	</select>
+	
+	<select id="searchusername" resultType="UserVO">
+		SELECT 
+			user_id,
+			user_name,
+			user_phone,
+			to_char(user_ssn,'YYYY-MM-dd') as user_ssn,
+			user_job,
+			user_adress 
+		FROM user_tb
+		where user_name = #{user_name}
+	</select>
+	
+	<select id="searchuserphone" resultType="UserVO">
+		SELECT 
+			user_id,
+			user_name,
+			user_phone,
+			to_char(user_ssn,'YYYY-MM-dd') as user_ssn,
+			user_job,
+			user_adress 
+		FROM user_tb
+		where user_phone = #{user_phone}
+	</select>
+	
+	<select id="userdetail" resultType="UserVO">
+		SELECT 
+			t10.user_id,
+			t10.user_pw,
+			t10.user_name,
+			t10.user_adress,
+			t10.user_phone,
+			t10.user_job,
+			to_char(t10.user_ssn,'YYYY-MM-dd') as user_ssn,
+			t10.level_id,
+			t10.black_list_yn,
+			t10.email,
+			to_char(t20.order_price,'FM999,999,999') as order_price
+		FROM user_tb t10,
+			(select t100.user_id, sum(t100.order_product_cnt * t200.product_price) as order_price from order_tb t100, product_tb t200 where t100.product_id = t200.product_id group by t100.user_id) t20
+		where t10.user_id = t20.user_id(+)
+        and t10.user_id = #{user_id}
+	</select>
+	
+	<select id="level" resultType="LevelVO">
+		SELECT 
+			* 
+		FROM level_tb
+	</select>
+	
+	<select id="blacklist" resultType="UserVO">
+		SELECT 
+			distinct black_list_yn
+		FROM user_tb
+	</select>
+	
+	<select id="userlevel" resultType="String">
+		SELECT 
+			level_id
+		FROM user_tb
+		WHERE user_id = #{user_id}
+	</select>
+	
+	<select id="blacklistyn" resultType="String">
+		SELECT 
+			black_list_yn
+		FROM user_tb
+		WHERE user_id = #{user_id}
+	</select>
+	
+	<select id="issued_blacklist" resultType="UserVO">
+		SELECT 
+			user_id,
+			user_name
+		FROM user_tb
+		WHERE black_list_yn = 'y'
+	</select>
+	
+	<update id="userupdate" parameterType="UserVO">
+		UPDATE
+			user_tb
+		SET
+			user_pw = #{user_pw},
+			user_name = #{user_name},
+			user_adress = #{user_adress},
+			user_phone = #{user_phone},
+			user_job = #{user_job},
+			user_ssn = #{user_ssn},
+			level_id = #{level_id},
+			black_list_yn = #{black_list_yn},
+			email = #{email}
+		WHERE
+			user_id = #{user_id}
+	</update>
+	
+	<select id="selectanniversary" resultType="AnniversaryVO">
+		SELECT 
+			user_id,
+			anniversary_name,
+			anniversary_cycle,
+			to_char(anniversary_date,'YYYY-MM-dd') as anniversary_date,
+			anniversary_relation,
+			reg_date,
+			anniversary_id
+		FROM anniversary_tb
+		WHERE user_id = #{user_id}
+	</select>
+	
+	<update id="anniversaryupdate" parameterType="AnniversaryVO">
+		UPDATE
+			anniversary_tb
+		SET
+			anniversary_name = #{anniversary_name},
+			anniversary_cycle = #{anniversary_cycle},
+			anniversary_date = to_date(#{anniversary_date}),
+			anniversary_relation = #{anniversary_relation}
+		WHERE
+			user_id = #{user_id}
+		AND
+			Anniversary_id = #{anniversary_id}
+	</update>
+	
+	<select id="selectconsulting" resultType="ConsultingVO">
+		SELECT 
+			user_id,
+			content,
+			to_char(reg_date,'YYYY-MM-dd') as reg_date,
+			consultant,
+			state,
+			consulting_id
+		FROM consulting_tb
+		WHERE user_id = #{user_id}
+		order by reg_date desc
+	</select>
+	
+	<select id="selectconsultingid" resultType="ConsultingVO">
+		SELECT 
+			user_id,
+			content,
+			to_char(reg_date,'YYYY-MM-dd') as reg_date,
+			consultant,
+			state,
+			consulting_id
+		FROM consulting_tb
+		WHERE consulting_id = #{consulting_id}
+	</select>
+	
+	<update id="consultingupdate">
+		UPDATE
+			consulting_tb
+		SET
+			content = #{content},
+			consultant = #{consultant},
+			state = #{state}
+		WHERE
+			consulting_id = #{consulting_id}
+	</update>
+	
+	<select id="selectorderlist" resultType="OrderVO">
+		select
+			t10.order_id,
+			t20.product_name,
+			t10.order_product_cnt,
+			to_char((t10.order_product_cnt * t20.product_price),'FM999,999,999') as order_price,
+			to_char(t10.reg_date,'YYYY-MM-dd') as reg_date,
+			t10.order_return_yn,
+			t10.order_check,
+			t10.user_id
+		from
+			order_tb t10,
+			product_tb t20
+		where t10.product_id = t20.product_id(+)
+		and t10.user_id = #{user_id}
+		order by t10.reg_date desc
+	</select>
+	
+	<select id="orderdetail" resultType="OrderVO">
+		select
+			t10.order_id,
+			t10.order_adress,
+			t10.order_check,
+			t10.order_phone,
+			t10.order_memo,
+			t10.order_recipient,
+			t10.order_return_yn,
+			t10.user_id
+		from
+			order_tb t10
+		where
+			order_id = #{order_id}
+	</select>
+	
+	<select id="usercouponlist" resultType="CouponVO">
+		select
+			t10.coupon_issued_id,
+			t20.coupon_name,
+			t10.user_id,
+			to_char(t10.reg_date,'YYYY-MM-dd') as reg_date,
+			t10.coupon_yn
+		from
+			coupon_issued_tb t10,
+			coupon_tb t20
+		where t10.coupon_id = t20.coupon_id(+)
+		and t10.user_id = #{user_id}
+		order by to_number(t10.coupon_issued_id) desc
+	</select>
+	
+	<insert id="anniversaryinsert" parameterType="AnniversaryVO">
+		insert into anniversary_tb(user_id, anniversary_name, anniversary_relation, anniversary_date, anniversary_cycle, reg_date, anniversary_id)
+		values(#{user_id},#{anniversary_name},#{anniversary_relation},#{anniversary_date},#{anniversary_cycle},sysdate,#{anniversary_id})
+	</insert>
+	
+	<select id="anniversarylist" resultType="AnniversaryVO">
+		select
+			user_id,
+			Anniversary_name,
+			anniversary_cycle,
+			to_char(anniversary_date,'YYYY-MM-dd') as anniversary_date,
+			anniversary_relation,
+			reg_date,
+			anniversary_id
+		from
+			anniversary_tb
+		where
+			user_id = #{user_id}
+		and
+			anniversary_id = #{anniversary_id}
+	</select>
+	
+	<select id="consultingidcheck" resultType="int">
+		select
+			max(to_number(consulting_id))+1
+		from
+			consulting_tb
+	</select>
+	
+	<insert id="consultinginsert">
+		insert into consulting_tb(user_id,content,reg_date,state,consultant,consulting_id)
+		values(#{user_id},#{content},sysdate,'처리중',#{consultant},#{consulting_id})
+	</insert>
+	
+	<update id="orderupdate">
+		update
+			order_tb
+		set
+			order_adress = #{order_adress},
+			order_check = #{order_check},
+			order_return_yn = #{order_return_yn},
+			order_recipient = #{order_recipient},
+			order_phone = #{order_phone},
+			order_memo = #{order_memo}
+		where
+			order_id = #{order_id}
+	</update>
+	
+	<select id="new_user_list" resultType="UserVO">
+		select
+			t10.user_id,
+			t10.user_name,
+			to_char(t10.user_ssn,'YYYY-MM-dd') as user_ssn,
+			t10.user_job,
+			to_date(sysdate,'YYYY-MM-dd')-to_date(t10.reg_date,'YYYY-MM-dd')||'일 전' as reg_date,
+			(case when t20.order_cnt is null then 'X'
+			else 'O' end) as order_cnt,
+            case when t30.mail_category = 'new' then to_char(t30.reg_date) else 'X' end mail_reg_date
+		from
+			user_tb t10,
+			(select user_id, count(*) as order_cnt from order_tb group by user_id) t20,
+            (select user_id,mail_category,max(reg_date) as reg_date from (select user_id,mail_category,reg_date from mail_tb where mail_category = 'new') group by user_id,mail_category) t30
+		where t10.user_id = t20.user_id(+)
+        and t10.user_id = t30.user_id(+)
+		and t10.reg_date > sysdate-140
+        order by to_date(sysdate,'YYYY-MM-dd')-to_date(t10.reg_date,'YYYY-MM-dd')
+	</select>
+	
+	<select id="basket_user_list" resultType="BasketVO">
+		select
+			t10.user_id,
+			t20.user_name,
+			t30.level_name,
+			to_char(t10.basket_product_cnt,'FM999,999,999') as basket_product_cnt,
+			to_char(t10.basket_price,'FM999,999,999') as basket_price,
+			to_date(sysdate,'YYYY-MM-dd')-to_date(t10.reg_date,'YYYY-MM-dd')||'일' as reg_date,
+            case when t40.mail_category = 'basket' then to_char(t40.reg_date) else 'X' end as mail_reg_date
+		from
+			(select t100.user_id, sum(t100.basket_product_cnt) as basket_product_cnt, sum(t200.product_price * t100.basket_product_cnt) as basket_price, max(t100.reg_date) as reg_date from basket_tb t100, product_tb t200 where t100.product_id = t200.product_id group by t100.user_id) t10,
+			user_tb t20,
+			level_tb t30,
+            (select user_id,mail_category,max(reg_date) as reg_date from (select user_id,mail_category,reg_date from mail_tb where mail_category = 'basket') group by user_id,mail_category) t40
+		where t10.user_id = t20.user_id
+		and t20.level_id = t30.level_id
+        and t10.user_id = t40.user_id(+)
+	</select>
+	
+	<select id="product_category_list" resultType="SizeVO">
+		select
+			distinct product_main_category
+		from
+			product_tb
+	</select>
+	
+	<select id="size_issued" resultType="SizeVO">
+		select
+		    t700.user_id,
+		    t700.user_name,
+		    t500.product_main_category,
+		    t600.product_size as order_size_before,
+		    t500.product_size as order_size_after,
+		    t300.order_id,
+            case when t900.mail_category = 'size' then to_char(t900.reg_date) else 'X' end as mail_reg_date
+		from
+		(select
+		    t10.user_id,
+		    max(to_number(t10.order_id)) as order_id
+		    from
+		    order_tb t10,
+		    product_tb t20
+		    where t10.product_id = t20.product_id
+		    and t20.product_main_category = #{product_main_category}
+		    group by t10.user_id) t100,
+		(select
+		    t10.user_id,
+		    max(to_number(t10.order_id)) as order_id
+		    from
+		    order_tb t10,
+		    product_tb t20
+		    where t10.product_id = t20.product_id
+		    and t20.product_main_category = #{product_main_category}
+		    and t10.order_id not in (
+		                        select
+		                        max(to_number(t10.order_id))
+		                        from
+		                        order_tb t10,
+		                        product_tb t20
+		                        where t10.product_id = t20.product_id
+		                        and t20.product_main_category = #{product_main_category}
+		                        group by t10.user_id)
+		    group by t10.user_id) t200,
+		order_tb t300,
+		order_tb t400,
+		product_tb t500,
+		product_tb t600,
+		user_tb t700,
+		user_tb t800,
+        (select order_id,mail_category,max(reg_date) as reg_date from (select order_id,mail_category,reg_date from mail_tb where mail_category = 'size') group by order_id,mail_category) t900
+		where t100.user_id = t200.user_id
+		and t100.order_id = t300.order_id
+		and t200.order_id = t400.order_id
+		and t300.product_id = t500.product_id
+		and t400.product_id = t600.product_id
+		and t100.user_id = t700.user_id
+		and t200.user_id = t800.user_id
+        and t100.order_id = t900.order_id(+)
+		and <![CDATA[t500.product_size <> t600.product_size]]>
+	</select>
+	
+	<select id="anniversary_issued_list" resultType="AnniversaryVO">
+        select
+			t10.user_id,
+			t20.user_name,
+			case when anniversary_cycle >= '365' then t10.anniversary_name else to_char(CEIL((to_char(sysdate,'DDD')-to_char(t10.anniversary_date,'DDD'))/t10.anniversary_cycle)*t10.anniversary_cycle)||'일' end as anniversary_name,
+			case when anniversary_cycle >= '365' then to_char(t10.anniversary_date,'MM')||'월'||to_char(t10.anniversary_date,'dd')||'일' else to_char(sysdate + t10.anniversary_cycle-MOD((to_char(sysdate,'DDD')-to_char(t10.anniversary_date,'DDD')),t10.anniversary_cycle)-1,'MM')||'월'||to_char(sysdate + t10.anniversary_cycle-MOD((to_char(sysdate,'DDD')-to_char(t10.anniversary_date,'DDD')),t10.anniversary_cycle)-1,'dd')||'일' end as anniversary_date,
+			t10.anniversary_relation,
+			case when anniversary_cycle >= '365' then to_char(t10.anniversary_date,'DDD')-to_char(sysdate,'DDD') else t10.anniversary_cycle-MOD((to_char(sysdate,'DDD')-to_char(t10.anniversary_date,'DDD')),t10.anniversary_cycle)-1 end||'일' as d_day,
+            t10.anniversary_cycle,
+            case when t30.mail_category = 'anniversary' then to_char(t30.reg_date) else 'X' end as mail_reg_date
+		from
+			anniversary_tb t10,
+			user_tb t20,
+            (select user_id,mail_category,max(reg_date) as reg_date from (select user_id,mail_category,reg_date from mail_tb where mail_category = 'anniversary') group by user_id,mail_category) t30
+		where t10.user_id = t20.user_id
+        and t20.user_id = t30.user_id(+)
+        and case when anniversary_cycle >= '365' then to_char(t10.anniversary_date,'DDD')-to_char(sysdate,'DDD') else t10.anniversary_cycle-MOD((to_char(sysdate,'DDD')-to_char(t10.anniversary_date,'DDD')),t10.anniversary_cycle) end between 0 and 30
+	</select>
+	
+	<select id="job_list" resultType="UserVO">
+		select
+			distinct user_job
+		from
+			user_tb
+	</select>
+	
+	<select id="search_user" resultType="UserVO">
+		select
+			t10.user_id,
+			t10.user_name,
+			t10.user_phone,
+			to_char(t10.user_ssn,'YYYY-MM-dd') as user_ssn,
+			t10.user_job,
+			t10.user_adress
+		from
+			user_tb t10,
+			level_tb t20
+		where t10.level_id = t20.level_id(+)
+		<if test="user_job != null and user_job != ''">
+			and user_job = #{user_job}
+		</if>
+		<if test="user_name != null and user_name != ''">
+			and user_name = #{user_name}
+		</if>
+		<if test="user_phone != null and user_phone != ''">
+			and user_phone = #{user_phone}
+		</if>
+		<if test="user_order == 'user_ssn'">
+			order by t10.user_ssn
+		</if>
+		<if test="user_order == 'user_name'">
+			order by t10.user_name
+		</if>
+	</select>
+	
+	<insert id="mail_insert">
+		insert into mail_tb(user_id,mail_category,content,reg_date,order_id,title)
+		values(#{user_id},#{mail_category},#{content},sysdate,#{order_id},#{title})
+	</insert>
+	
+	<select id="user_check" resultType="int">
+		select
+			count(*)
+		from
+			user_tb
+		where user_id = #{user_id}
+	</select>
+	
+	<insert id="new_user_insert">
+		insert into user_tb(user_id, user_pw,user_name, user_adress, reg_date, black_list_yn)
+		values(#{user_id},#{user_pw},#{user_name},#{user_adress},sysdate, 'n')
+	</insert>
+	<select id="anniversary_id" resultType="String">
+		select
+			max(to_number(anniversary_id))+1
+		from
+			anniversary_tb
+	</select>
+	<select id="mail_list" resultType="MailVO">
+		select
+			mail_category,
+			user_id,
+			title,
+			to_char(reg_date,'YYYY-MM-dd') as reg_date
+		from
+			mail_tb
+		where
+			user_id = #{user_id}
+		order by reg_date desc
+	</select>
+</mapper> 

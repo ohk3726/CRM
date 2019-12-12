@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 맵핑될 DAO 인터페이스의 Full name 을 줍니다. --> 
+<mapper namespace="com.usinsa.crm.dao.LevelDAO"> 
+<!-- id 속성은 DAO 의 메소드와 같아야 한다. 여기의 boardVO 는 mybatis-confg.xml 에 Alias 되어 있습니다. --> 
+<select id="level_order" resultType="LevelVO">
+	select
+	*
+	from (select
+	    t10.user_id,
+	    t10.user_name,
+	    to_char(sum(t20.order_price),'FM999,999,999') as order_price
+	    from
+	    user_tb t10,
+	    (select t100.user_id, (t100.order_product_cnt * t200.product_price) as order_price from order_tb t100, product_tb t200 where  t100.product_id = t200.product_id) t20
+	    where t10.user_id = t20.user_id
+	    and t10.level_id = #{level_id}
+	    group by t10.user_id, t10.user_name
+	    order by sum(t20.order_price) desc) t900
+	where rownum <![CDATA[<=]]> 10
+</select>
+<select id="level_down_list" resultType="LevelVO">
+	select
+		t10.user_id,
+		t10.user_name,
+		t20.order_price,
+		t30.level_name as old_level_name,
+		t10.level_name 
+	from
+		(select t100.user_id, t100.user_name, t100.level_id, t200.level_name, t200.level_order from user_tb t100, level_tb t200 where t100.level_id = t200.level_id) t10,
+		(select t100.user_id, sum(t100.order_product_cnt * t200.product_price) as order_price from order_tb t100, product_tb t200 where t100.product_id = t200.product_id and t100.reg_date between sysdate-60 and sysdate group by t100.user_id) t20,
+		(select t100.user_id, t100.level_id, t200.level_name, t200.level_order from old_level_tb t100, level_tb t200 where t100.level_id = t200.level_id) t30
+	where t10.user_id = t20.user_id
+	and t10.user_id = t30.user_id
+	and t30.level_order <![CDATA[<]]> t10.level_order
+</select>
+<select id="level_down_expected_list" resultType="LevelVO">
+	select
+		t10.user_id,
+		t10.user_name,
+		nvl(t20.order_price,0) as order_price,
+		t30.level_name,
+		t30.level_price
+	from
+		user_tb t10,
+		(select 
+        t100.user_id, 
+        sum(t100.order_product_cnt * t200.product_price) as order_price 
+        from order_tb t100, product_tb t200 
+        where t100.product_id = t200.product_id 
+        and t100.reg_date between sysdate-60 and sysdate 
+        group by t100.user_id) t20,
+		level_tb t30
+	where t10.user_id = t20.user_id(+)
+	and t10.level_id = t30.level_id(+)
+	and nvl(t20.order_price,0) <![CDATA[<]]> t30.level_price
+</select>
+</mapper> 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?> 
+<!DOCTYPE configuration 
+PUBLIC "-//mybatis.org//DTD Config 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-config.dtd"> 
+
+<configuration> 
+	<!-- 여러가지 기본 옵션을 지정합니다. --> 
+	<settings> 
+		<!-- 오라클 필드 속성이 READ_COUNT 처럼 언더 스코어가 있을 때 VO 의 readCount 처럼 카멜 케이스로 변환 되게 합니다. --> 
+		<!-- 세팅을 넣어주어야 디비에 결과값이 null이 되지 않는다. -->
+		<setting name="cacheEnabled" value="true" />
+        <setting name="useGeneratedKeys" value="false" />
+        <setting name="defaultExecutorType" value="REUSE"/>
+        <setting name="defaultStatementTimeout" value="60"/>
+        <setting name="callSettersOnNulls" value="true"/>
+        <setting name="mapUnderscoreToCamelCase" value="false"/> 
+	</settings> 
+	<typeAliases>
+		<typeAlias alias="userVO" type="com.usinsa.crm.vo.UserVO"/>
+		<typeAlias alias="levelVO" type="com.usinsa.crm.vo.LevelVO"/>
+		<typeAlias alias="anniversaryVO" type="com.usinsa.crm.vo.AnniversaryVO"/>
+		<typeAlias alias="consultingVO" type="com.usinsa.crm.vo.ConsultingVO"/>
+		<typeAlias alias="orderVO" type="com.usinsa.crm.vo.OrderVO"/>
+		<typeAlias alias="couponVO" type="com.usinsa.crm.vo.CouponVO"/>
+		<typeAlias alias="basketVO" type="com.usinsa.crm.vo.BasketVO"/>
+		<typeAlias alias="sizeVO" type="com.usinsa.crm.vo.SizeVO"/>
+		<typeAlias alias="otherVO" type="com.usinsa.crm.vo.OtherVO"/>
+		<typeAlias alias="mailVO" type="com.usinsa.crm.vo.MailVO"/>
+		
+		<typeAlias alias="PRODUCT_TB_VO" type="com.usinsa.crm.vo.PRODUCT_TB_VO"/>
+		<typeAlias alias="ORDER_TB_VO" type="com.usinsa.crm.vo.ORDER_TB_VO"/>
+		<typeAlias alias="USER_TB_VO" type="com.usinsa.crm.vo.USER_TB_VO"/>
+		<typeAlias alias="LEVEL_TB_VO" type="com.usinsa.crm.vo.LEVEL_TB_VO"/>
+	</typeAliases> 
+	
+</configuration>
